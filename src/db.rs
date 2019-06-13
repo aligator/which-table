@@ -4,46 +4,45 @@ use odbc::*;
 
 use crate::search;
 
-trait Db {
+pub trait Db {
     fn connect<'env>(&mut self, connString: &str) -> Result<(), Err>;
     fn all_tables(&self) -> &[String];
     fn search(&self, term: &str) -> Vec<search::Res>;
 }
 
-struct Odbc<'env> {
-    environment: Environment<Version3>,
-    connection: Connection<'env>,
+pub struct Odbc<'env> {
+    pub environment: &'env Environment<Version3>,
+    pub connection: Option<Connection<'env>>,
 }
 
-impl<'env> Odbc<'env> {
-    fn init(&mut self) -> Result<(), Err> {
-        let envRes = create_environment_v3();
 
-        match envRes {
-            Ok(environment) => self.environment = environment,
-            Err(diagnostics) => {
-                // todo fn to create Err out of diagnostics
-                let error = match diagnostics {
-                    Some(diagnostics) => {
-                        Err {
-                            code: 0,
-                            msg: diagnostics.to_string(),
-                        }
+pub fn getEnvironment() -> Result<Environment<Version3>, Err> {
+    let envRes = create_environment_v3();
+    let env: Environment<Version3>;
+    match envRes {
+        Ok(environment) => env = environment,
+        Err(diagnostics) => {
+            // todo fn to create Err out of diagnostics
+            let error = match diagnostics {
+                Some(diagnostics) => {
+                    Err {
+                        code: 0,
+                        msg: diagnostics.to_string(),
                     }
-                    None => {
-                        Err {
-                            code: 1,
-                            msg: "odbc environment creation failed".to_string(),
-                        }
+                }
+                None => {
+                    Err {
+                        code: 1,
+                        msg: "odbc environment creation failed".to_string(),
                     }
-                };
+                }
+            };
 
-                return Result::Err(error);
-            }
+            return Result::Err(error);
         }
-
-        return Result::Ok(())
     }
+
+    return Result::Ok(env)
 }
 
 impl<'env> Db for Odbc<'env> {
@@ -52,7 +51,7 @@ impl<'env> Db for Odbc<'env> {
         let connRes = self.environment.connect_with_connection_string(connString);
         return match connRes {
             Ok(connection) => {
-                self.connection = connection;
+                self.connection = Option::Some(connection);
                 Result::Ok(())
             },
             Err(diagnostics) => {
@@ -75,9 +74,9 @@ impl<'env> Db for Odbc<'env> {
 }
 
 #[derive(Debug, Clone)]
-struct Err {
+pub struct Err {
     code: u16,
-    msg: String,
+    pub msg: String,
 }
 
 #[derive(Debug, Copy, Clone)]

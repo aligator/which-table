@@ -1,10 +1,25 @@
 #[macro_use]
 extern crate log;
 
+use crate::db::Db;
+
 mod db;
 mod search;
 
-fn main() {}
+fn main() {
+    let env = db::getEnvironment().unwrap();
+    let mut dbc = db::Odbc {
+        environment: &env,
+        connection: None,
+    };
+
+    let res = dbc.connect("Driver=SQLite3;Database=test.db");
+
+    match res {
+        Ok(_) => print!("run OK"),
+        Err(err) => print!("Run {}", err.msg),
+    }
+}
 
 /*extern crate odbc;
 // Use this crate and set environmet variable RUST_LOG=odbc to see ODBC warnings
