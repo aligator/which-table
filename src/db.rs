@@ -1,8 +1,8 @@
-use odbc::Environment;
-use odbc::Connection;
+use odbc::{Connection, create_environment_v3, Environment, Version3};
+
 use crate::search;
 
-trait Db {
+pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> &[String];
@@ -12,6 +12,34 @@ trait Db {
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
+}
+
+impl<'env> Odbc<'env> {
+    pub fn new(env: &Environment<odbc::Version3>) -> Odbc {
+        return Odbc {
+            env,
+            con: None,
+        }
+    }
+
+    pub fn get_environment() -> Result<Environment<Version3>, Err> {
+        let env_res = create_environment_v3();
+        let env: Environment<Version3>;
+        match env_res {
+            Ok(environment) => env = environment,
+            Err(diagnose) => {
+                // todo fn to create Err out of diagnostics
+                let error = match diagnose {
+                    Some(diagnose) => Err::new(1, &diagnose.to_string()),
+                    None => Err::new(2, &"odbc environment creation failed".to_string())
+                };
+
+                return Result::Err(error);
+            }
+        }
+
+        return Result::Ok(env)
+    }
 }
 
 impl<'env> Db for Odbc<'env> {
@@ -40,9 +68,9 @@ impl<'env> Db for Odbc<'env> {
 }
 
 #[derive(Debug, Clone)]
-struct Err {
-    code: u16,
-    msg: String,
+pub struct Err {
+    pub code: u16,
+    pub msg: String,
 }
 
 impl Err {
