@@ -68,10 +68,8 @@ impl Err {
             msg: String::from(msg)
         }
     }
-}
 
-#[derive(Debug, Copy, Clone)]
-struct Auth<'a> {
-    user: &'a str,
-    pass: &'a str,
+    fn msg(&self) -> String {
+        self.msg.clone()
+    }
 }
