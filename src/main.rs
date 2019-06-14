@@ -5,10 +5,10 @@ mod db;
 mod search;
 
 fn main() {
-    let env = db::getEnvironment().unwrap();
+    /*let env = db::getEnvironment().unwrap();
     let mut dbc = db::Odbc {
-        environment: &env,
-        connection: None,
+        env: &env,
+        con: None,
     };
 
     let res = dbc.connect("Driver=SQLite3;Database=test.db");
@@ -16,7 +16,7 @@ fn main() {
     match res {
         Ok(_) => print!("run OK"),
         Err(err) => print!("Run {}", err.msg),
-    }
+    }*/
 }
 
 /*extern crate odbc;
@@ -69,3 +69,4 @@ fn execute_statement<'env>(conn: &Connection<'env>) -> Result<()> {
         }
         NoData(_) => println!("Query executed, no data returned"),
     }
+*/
