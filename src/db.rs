@@ -5,7 +5,7 @@ use crate::search;
 pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
-    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord>;
+    fn all_tables(&self) -> Result<Vec<String>, Err>;
     fn search(&self, term: &str) -> Box<Vec<search::Res>>;
 }
 
@@ -37,25 +37,8 @@ impl<'env> Odbc<'env> {
         };
         Result::Ok(env)
     }
-}
 
-impl<'env> Db for Odbc<'env> {
-    fn connect(&mut self, con_str: &str) -> Result<(), Err> {
-        let res = self.env.connect_with_connection_string(con_str);
-
-        return match res {
-            Ok(con) => {
-                self.con = Option::Some(con);
-                Result::Ok(())
-            },
-            Err(diagnose) => {
-                let custom = Err::new(0, &diagnose.to_string());
-                Result::Err(custom)
-            }
-        }
-    }
-
-    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord> {
+    fn load_all_tables(&self) -> Result<Vec<String>, DiagnosticRecord> {
         let mut tables: Vec<String> = Vec::new();
 
         let con = self.con.as_ref().unwrap();
@@ -72,6 +55,31 @@ impl<'env> Db for Odbc<'env> {
         }
 
         Ok(tables)
+    }
+}
+
+impl<'env> Db for Odbc<'env> {
+    fn connect(&mut self, con_str: &str) -> Result<(), Err> {
+        let res = self.env.connect_with_connection_string(con_str);
+
+        return match res {
+            Ok(con) => {
+                self.con = Option::Some(con);
+                Result::Ok(())
+            },
+            Err(diagnose) => {
+                let custom = Err::new(1, &diagnose.to_string());
+                Result::Err(custom)
+            }
+        }
+    }
+
+    // Wrap load_all_tables to allow easy use of '?'
+    fn all_tables(&self) -> Result<Vec<String>, Err> {
+        match self.load_all_tables() {
+            Ok(tables) => Result::Ok(tables),
+            Result::Err(diagnostics) => Result::Err(Err::new(2, &diagnostics.to_string()))
+        }
     }
 
     fn search(&self, term: &str) -> Box<Vec<search::Res>> {
@@ -91,9 +99,5 @@ impl Err {
             code,
             msg: String::from(msg)
         }
-    }
-
-    fn msg(&self) -> String {
-        self.msg.clone()
     }
 }

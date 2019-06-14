@@ -12,7 +12,11 @@ fn main() {
     match res {
         Ok(_) => {
             let tabs = dbc.all_tables();
-            print!("Tables {:?}", tabs.unwrap());
+            match tabs {
+                Ok(tabs) => print!("Tables {:?}", tabs),
+                Err(err) => print!("Run {}", err.msg),
+            }
+
         },
         Err(err) => print!("Run {}", err.msg),
     }
