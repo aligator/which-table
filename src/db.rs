@@ -6,28 +6,30 @@ trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> &[String];
-    fn search(&self, term: &str) -> Vec<search::Res>;
-}
-
-pub fn create_env() -> Result<Environment<odbc::Version3>, Err> {
-    let res = odbc::create_environment_v3();
-    let env = match res {
-        Ok(env) => env,
-        Err(diagnose) => {
-            let msg = match diagnose {
-                Some(d) => d.to_string(),
-                None => String::from("failed to create environemnt"),
-            };
-            let custom = Err::new(0, &msg);
-            return Result::Err(custom);
-        }
-    };
-    Result::Ok(env)
+    fn search(&self, term: &str) -> Box<Vec<search::Res>>;
 }
 
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
+}
+
+impl<'env> Odbc<'env> {
+    pub fn create_env() -> Result<Environment<odbc::Version3>, Err> {
+        let res = odbc::create_environment_v3();
+        let env = match res {
+            Ok(env) => env,
+            Err(diagnose) => {
+                let msg = match diagnose {
+                    Some(d) => d.to_string(),
+                    None => String::from("failed to create environemnt"),
+                };
+                let custom = Err::new(0, &msg);
+                return Result::Err(custom);
+            }
+        };
+        Result::Ok(env)
+    }
 }
 
 impl<'env> Db for Odbc<'env> {
@@ -50,7 +52,7 @@ impl<'env> Db for Odbc<'env> {
         unimplemented!();
     }
 
-    fn search(&self, term: &str) -> Vec<search::Res> {
+    fn search(&self, term: &str) -> Box<Vec<search::Res>> {
         unimplemented!();
     }
 }
