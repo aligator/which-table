@@ -24,10 +24,7 @@ impl<'env> Db for Odbc<'env> {
                 Result::Ok(())
             },
             Err(diagnose) => {
-                let custom = Err {
-                    code: 0,
-                    msg: diagnose.to_string(),
-                };
+                let custom = Err::new(0, &diagnose.to_string());
                 Result::Err(custom)
             }
         }
@@ -46,6 +43,15 @@ impl<'env> Db for Odbc<'env> {
 struct Err {
     code: u16,
     msg: String,
+}
+
+impl Err {
+    fn new(code: u16, msg: &str) -> Err {
+        Err {
+            code,
+            msg: String::from(msg)
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
