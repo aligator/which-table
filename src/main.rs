@@ -10,7 +10,10 @@ fn main() {
     let res = dbc.connect("Driver=SQLite3;Database=test.db");
 
     match res {
-        Ok(_) => print!("run OK"),
+        Ok(_) => {
+            let tabs = dbc.all_tables();
+            print!("Tables {:?}", tabs.unwrap());
+        },
         Err(err) => print!("Run {}", err.msg),
     }
 }

@@ -7,7 +7,7 @@ use crate::search;
 pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
-    fn all_tables(&self) -> Result<Vec<&str>, DiagnosticRecord>;
+    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord>;
     fn search(&self, term: &str) -> Vec<search::Res>;
 }
 
@@ -60,8 +60,8 @@ impl<'env> Db for Odbc<'env> {
         }
     }
 
-    fn all_tables(&self) -> Result<Vec<&str>, DiagnosticRecord> {
-        let mut tables: Vec<&str> = Vec::new();
+    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord> {
+        let mut tables: Vec<String> = Vec::new();
 
         let con = self.con.as_ref().unwrap();
         let stmt = Statement::with_parent(con)?;
@@ -70,7 +70,7 @@ impl<'env> Db for Odbc<'env> {
         while let Some(mut cursor) = rs.fetch()? {
             for i in 1..(cols + 1) {
                 match cursor.get_data::<&str>(i as u16)? {
-                    Some(val) => tables.push(val),
+                    Some(val) => tables.push(val.to_owned()),
                     None => (),
                 }
             }
