@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate log;
 
-use crate::db::Db;
-
 mod db;
 mod search;
 
@@ -71,8 +69,3 @@ fn execute_statement<'env>(conn: &Connection<'env>) -> Result<()> {
         }
         NoData(_) => println!("Query executed, no data returned"),
     }
-
-    Ok(())
-}
-*/
-// Driver=SQLite3;Database=test.db

@@ -1,82 +1,57 @@
-use std::result::Result;
-
-use odbc::*;
-
+use odbc::Environment;
+use odbc::Connection;
 use crate::search;
 
-pub trait Db {
-    fn connect<'env>(&mut self, connString: &str) -> Result<(), Err>;
+trait Db {
+    #[must_use]
+    fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> &[String];
     fn search(&self, term: &str) -> Vec<search::Res>;
 }
 
 pub struct Odbc<'env> {
-    pub environment: &'env Environment<Version3>,
-    pub connection: Option<Connection<'env>>,
-}
-
-
-pub fn getEnvironment() -> Result<Environment<Version3>, Err> {
-    let envRes = create_environment_v3();
-    let env: Environment<Version3>;
-    match envRes {
-        Ok(environment) => env = environment,
-        Err(diagnostics) => {
-            // todo fn to create Err out of diagnostics
-            let error = match diagnostics {
-                Some(diagnostics) => {
-                    Err {
-                        code: 0,
-                        msg: diagnostics.to_string(),
-                    }
-                }
-                None => {
-                    Err {
-                        code: 1,
-                        msg: "odbc environment creation failed".to_string(),
-                    }
-                }
-            };
-
-            return Result::Err(error);
-        }
-    }
-
-    return Result::Ok(env)
+    pub env: &'env Environment<odbc::Version3>,
+    pub con: Option<Connection<'env>>,
 }
 
 impl<'env> Db for Odbc<'env> {
-    fn connect(&mut self, connString: &str) -> Result<(), Err> {
-        info!("odbc: connecting to {}", connString);
-        let connRes = self.environment.connect_with_connection_string(connString);
-        return match connRes {
-            Ok(connection) => {
-                self.connection = Option::Some(connection);
+    fn connect(&mut self, con_str: &str) -> Result<(), Err> {
+        let res = self.env.connect_with_connection_string(con_str);
+
+        return match res {
+            Ok(con) => {
+                self.con = Option::Some(con);
                 Result::Ok(())
             },
-            Err(diagnostics) => {
-                // todo fn to create Err out of diagnostics
-                return Result::Err(Err {
-                    code: 0,
-                    msg: diagnostics.to_string(),
-                });
+            Err(diagnose) => {
+                let custom = Err::new(0, &diagnose.to_string());
+                Result::Err(custom)
             }
         }
     }
 
     fn all_tables(&self) -> &[String] {
-        unimplemented!()
+        unimplemented!();
     }
 
     fn search(&self, term: &str) -> Vec<search::Res> {
-        unimplemented!()
+        unimplemented!();
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct Err {
+struct Err {
     code: u16,
-    pub msg: String,
+    msg: String,
+}
+
+impl Err {
+    fn new(code: u16, msg: &str) -> Err {
+        Err {
+            code,
+            msg: String::from(msg)
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
