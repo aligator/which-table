@@ -1,4 +1,4 @@
-use odbc::{Connection, create_environment_v3, DiagnosticRecord, Environment, Statement, Version3};
+use odbc::{Connection, DiagnosticRecord, Environment, Statement};
 
 use crate::search;
 
@@ -74,7 +74,7 @@ impl<'env> Db for Odbc<'env> {
         Ok(tables)
     }
 
-    fn search(&self, term: &str) -> Vec<search::Res> {
+    fn search(&self, term: &str) -> Box<Vec<search::Res>> {
         unimplemented!();
     }
 }

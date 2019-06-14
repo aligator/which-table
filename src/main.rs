@@ -4,7 +4,7 @@ mod db;
 mod search;
 
 fn main() {
-    let env = db::Odbc::get_environment().unwrap();
+    let env = db::Odbc::create_env().unwrap();
     let mut dbc = db::Odbc::new(&env);
 
     let res = dbc.connect("Driver=SQLite3;Database=test.db");
