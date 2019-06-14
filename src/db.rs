@@ -15,6 +15,13 @@ pub struct Odbc<'env> {
 }
 
 impl<'env> Odbc<'env> {
+    pub fn new(env: &Environment<odbc::Version3>) -> Odbc {
+        Odbc {
+            env,
+            con: None,
+        }
+    }
+
     pub fn create_env() -> Result<Environment<odbc::Version3>, Err> {
         let res = odbc::create_environment_v3();
         let env = match res {
