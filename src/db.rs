@@ -1,11 +1,11 @@
-use odbc::Environment;
-use odbc::Connection;
+use odbc::{Connection, DiagnosticRecord, Environment, Statement};
+
 use crate::search;
 
-trait Db {
+pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
-    fn all_tables(&self) -> &[String];
+    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord>;
     fn search(&self, term: &str) -> Box<Vec<search::Res>>;
 }
 
@@ -55,8 +55,23 @@ impl<'env> Db for Odbc<'env> {
         }
     }
 
-    fn all_tables(&self) -> &[String] {
-        unimplemented!();
+    fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord> {
+        let mut tables: Vec<String> = Vec::new();
+
+        let con = self.con.as_ref().unwrap();
+        let stmt = Statement::with_parent(con)?;
+        let mut rs = stmt.tables_str("%", "%", "%", "TABLE")?;
+        let cols = rs.num_result_cols()?;
+        while let Some(mut cursor) = rs.fetch()? {
+            for i in 1..(cols + 1) {
+                match cursor.get_data::<&str>(i as u16)? {
+                    Some(val) => tables.push(val.to_owned()),
+                    None => (),
+                }
+            }
+        }
+
+        Ok(tables)
     }
 
     fn search(&self, term: &str) -> Box<Vec<search::Res>> {
@@ -66,8 +81,8 @@ impl<'env> Db for Odbc<'env> {
 
 #[derive(Debug, Clone)]
 pub struct Err {
-    code: u16,
-    msg: String,
+    pub code: u16,
+    pub msg: String,
 }
 
 impl Err {
