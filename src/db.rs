@@ -6,7 +6,7 @@ pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> Result<Vec<String>, DiagnosticRecord>;
-    fn search(&self, term: &str) -> Vec<search::Res>;
+    fn search(&self, term: &str) -> Box<Vec<search::Res>>;
 }
 
 pub struct Odbc<'env> {
@@ -16,29 +16,26 @@ pub struct Odbc<'env> {
 
 impl<'env> Odbc<'env> {
     pub fn new(env: &Environment<odbc::Version3>) -> Odbc {
-        return Odbc {
+        Odbc {
             env,
             con: None,
         }
     }
 
-    pub fn get_environment() -> Result<Environment<Version3>, Err> {
-        let env_res = create_environment_v3();
-        let env: Environment<Version3>;
-        match env_res {
-            Ok(environment) => env = environment,
+    pub fn create_env() -> Result<Environment<odbc::Version3>, Err> {
+        let res = odbc::create_environment_v3();
+        let env = match res {
+            Ok(env) => env,
             Err(diagnose) => {
-                // todo fn to create Err out of diagnostics
-                let error = match diagnose {
-                    Some(diagnose) => Err::new(1, &diagnose.to_string()),
-                    None => Err::new(2, &"odbc environment creation failed".to_string())
+                let msg = match diagnose {
+                    Some(d) => d.to_string(),
+                    None => String::from("failed to create environemnt"),
                 };
-
-                return Result::Err(error);
+                let custom = Err::new(0, &msg);
+                return Result::Err(custom);
             }
-        }
-
-        return Result::Ok(env)
+        };
+        Result::Ok(env)
     }
 }
 
@@ -95,10 +92,8 @@ impl Err {
             msg: String::from(msg)
         }
     }
-}
 
-#[derive(Debug, Copy, Clone)]
-struct Auth<'a> {
-    user: &'a str,
-    pass: &'a str,
+    fn msg(&self) -> String {
+        self.msg.clone()
+    }
 }
