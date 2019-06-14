@@ -1,10 +1,45 @@
-use std::result;
+use odbc::Environment;
+use odbc::Connection;
 use crate::search;
 
 trait Db {
-    fn connect<'a>(&self, con: &'a str, db: &'a str, auth: Box<Auth>) -> result::Result<(), Err>;
+    #[must_use]
+    fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> &[String];
-    fn search<'x>(&self, term: &'x str) -> Vec<search::Res>;
+    fn search(&self, term: &str) -> Vec<search::Res>;
+}
+
+pub struct Odbc<'env> {
+    pub env: &'env Environment<odbc::Version3>,
+    pub con: Option<Connection<'env>>,
+}
+
+impl<'env> Db for Odbc<'env> {
+    fn connect(&mut self, con_str: &str) -> Result<(), Err> {
+        let res = self.env.connect_with_connection_string(con_str);
+
+        return match res {
+            Ok(con) => {
+                self.con = Option::Some(con);
+                Result::Ok(())
+            },
+            Err(diagnose) => {
+                let custom = Err {
+                    code: 0,
+                    msg: diagnose.to_string(),
+                };
+                Result::Err(custom)
+            }
+        }
+    }
+
+    fn all_tables(&self) -> &[String] {
+        unimplemented!();
+    }
+
+    fn search(&self, term: &str) -> Vec<search::Res> {
+        unimplemented!();
+    }
 }
 
 #[derive(Debug, Clone)]
