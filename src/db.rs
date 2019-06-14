@@ -1,4 +1,4 @@
-use odbc::{Connection, create_environment_v3, Environment, Version3};
+use odbc::{Connection, create_environment_v3, Environment, Statement, Version3};
 
 use crate::search;
 
@@ -59,7 +59,21 @@ impl<'env> Db for Odbc<'env> {
     }
 
     fn all_tables(&self) -> &[String] {
-        unimplemented!();
+        let mut tables: &Vec<String> = &vec!();
+        let stmt = Statement::with_parent(&self.con.unwrap()).unwrap();
+
+        let mut rs = stmt.tables_str("%", "%", "%", "TABLE").unwrap();
+        let cols = rs.num_result_cols().unwrap();
+        while let Some(mut cursor) = rs.fetch().unwrap() {
+            for i in 1..(cols + 1) {
+                match cursor.get_data::<&str>(i as u16).unwrap() {
+                    Some(val) => tables.push(String::from(val)),
+                    None => (),
+                }
+            }
+        }
+
+        tables
     }
 
     fn search(&self, term: &str) -> Vec<search::Res> {
