@@ -1,5 +1,3 @@
-use core::borrow::Borrow;
-
 use odbc::{Connection, create_environment_v3, DiagnosticRecord, Environment, Statement, Version3};
 
 use crate::search;
