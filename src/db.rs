@@ -9,6 +9,22 @@ trait Db {
     fn search(&self, term: &str) -> Vec<search::Res>;
 }
 
+pub fn create_env() -> Result<Environment<odbc::Version3>, Err> {
+    let res = odbc::create_environment_v3();
+    let env = match res {
+        Ok(env) => env,
+        Err(diagnose) => {
+            let msg = match diagnose {
+                Some(d) => d.to_string(),
+                None => String::from("failed to create environemnt"),
+            };
+            let custom = Err::new(0, &msg);
+            return Result::Err(custom);
+        }
+    };
+    Result::Ok(env)
+}
+
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
@@ -40,7 +56,7 @@ impl<'env> Db for Odbc<'env> {
 }
 
 #[derive(Debug, Clone)]
-struct Err {
+pub struct Err {
     code: u16,
     msg: String,
 }
