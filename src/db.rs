@@ -1,13 +1,13 @@
 use core::borrow::Borrow;
 
-use odbc::{Connection, create_environment_v3, Environment, Statement, Version3};
+use odbc::{Connection, create_environment_v3, DiagnosticRecord, Environment, Statement, Version3};
 
 use crate::search;
 
 pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
-    fn all_tables(&self) -> Vec<&str>;
+    fn all_tables(&self) -> Result<Vec<&str>, DiagnosticRecord>;
     fn search(&self, term: &str) -> Vec<search::Res>;
 }
 
@@ -60,23 +60,23 @@ impl<'env> Db for Odbc<'env> {
         }
     }
 
-    fn all_tables(&self) -> Vec<&str> {
+    fn all_tables(&self) -> Result<Vec<&str>, DiagnosticRecord> {
         let mut tables: Vec<&str> = Vec::new();
-        let con = self.con.as_ref().unwrap();
-        let stmt = Statement::with_parent(con).unwrap();
 
-        let mut rs = stmt.tables_str("%", "%", "%", "TABLE").unwrap();
-        let cols = rs.num_result_cols().unwrap();
-        while let Some(mut cursor) = rs.fetch().unwrap() {
+        let con = self.con.as_ref().unwrap();
+        let stmt = Statement::with_parent(con)?;
+        let mut rs = stmt.tables_str("%", "%", "%", "TABLE")?;
+        let cols = rs.num_result_cols()?;
+        while let Some(mut cursor) = rs.fetch()? {
             for i in 1..(cols + 1) {
-                match cursor.get_data::<&str>(i as u16).unwrap() {
+                match cursor.get_data::<&str>(i as u16)? {
                     Some(val) => tables.push(val),
                     None => (),
                 }
             }
         }
 
-        tables
+        Ok(tables)
     }
 
     fn search(&self, term: &str) -> Vec<search::Res> {
