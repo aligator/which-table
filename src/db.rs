@@ -43,17 +43,19 @@ impl<'env> Odbc<'env> {
 
         let con = self.con.as_ref().unwrap();
         let stmt = Statement::with_parent(con)?;
-        let mut rs = stmt.tables_str("%", "%", "%", "TABLE")?;
-        let cols = rs.num_result_cols()?;
-        while let Some(mut cursor) = rs.fetch()? {
+        
+        let mut res = stmt.tables_str("%", "%", "%", "TABLE")?;
+        let cols = res.num_result_cols()?;
+        
+        while let Some(mut cur) = res.fetch()? {
             for i in 1..(cols + 1) {
-                match cursor.get_data::<&str>(i as u16)? {
-                    Some(val) => tables.push(val.to_owned()),
-                    None => (),
+                let col = i as u16;
+                
+                if let Some(val) = cur.get_data::<&str>(col)? {
+                    tables.push(val.to_owned());
                 }
             }
         }
-
         Ok(tables)
     }
 }
@@ -74,11 +76,15 @@ impl<'env> Db for Odbc<'env> {
         }
     }
 
-    // Wrap load_all_tables to allow easy use of '?'
+    // Wrap load_all_tables() to allow easy use of '?'
     fn all_tables(&self) -> Result<Vec<String>, Err> {
+        
         match self.load_all_tables() {
             Ok(tables) => Result::Ok(tables),
-            Result::Err(diagnostics) => Result::Err(Err::new(2, &diagnostics.to_string()))
+            Err(diagnose) => {
+                let custom = Err::new(2, &diagnose.to_string());
+                Result::Err(custom)
+            }
         }
     }
 
