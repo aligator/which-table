@@ -1,4 +1,7 @@
+#[macro_use] extern crate log;
+
 use crate::db::Db;
+use crate::db::Odbc;
 
 mod db;
 mod search;
@@ -6,10 +9,12 @@ mod search;
 const CON_STR: &str = "Driver={MySQL ODBC 8.0 ANSI Driver};server=localhost;database=foodunit2;user=foodunit2;password=foodunit2";
 
 fn main() {
-    let env = db::Odbc::create_env().unwrap();
-    let mut dbc = db::Odbc::new(&env);
+    let env = Odbc::create_env().unwrap();
+    let mut dbc = Odbc::new(&env);
 
-    dbc.connect(CON_STR).expect("failed to connect to database");
+    if let Err(e) = dbc.connect(CON_STR) {
+        panic!("{}", e.msg);
+    }
 
     match dbc.all_tables() {
         Ok(t) => println!("{:?}", t),
