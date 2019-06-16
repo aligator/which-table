@@ -33,10 +33,11 @@ impl<'env> Odbc<'env> {
             Err(dia) => {
                 let msg = match dia {
                     Some(d) => d.to_string(),
-                    None => String::from("failed to create environemnt"),
+                    None => String::from("failed to create environment"),
                 };
-                let custom = Err::new(0, &msg);
-                return Result::Err(custom);
+                return Result::Err(
+                    Err::new(0, &msg)
+                );
             }
         };
         Result::Ok(env)
@@ -77,8 +78,9 @@ impl<'env> Db for Odbc<'env> {
                 Result::Ok(())
             },
             Err(dia) => {
-                let custom = Err::new(1, &dia.to_string());
-                Result::Err(custom)
+                Result::Err(
+                    Err::new(1, &dia.to_string())
+                )
             }
         }
     }
@@ -89,8 +91,9 @@ impl<'env> Db for Odbc<'env> {
         match self.load_all_tables() {
             Ok(tables) => Result::Ok(tables),
             Err(dia) => {
-                let custom = Err::new(2, &dia.to_string());
-                Result::Err(custom)
+                Result::Err(
+                    Err::new(2, &dia.to_string())
+                )
             }
         }
     }
@@ -101,8 +104,9 @@ impl<'env> Db for Odbc<'env> {
             self.tables = match self.load_all_tables() {
                 Ok(t) => Some(t),
                 Err(dia) => {
-                    let custom = Err::new(2, &dia.to_string());
-                    return Result::Err(custom);
+                    return Result::Err(
+                        Err::new(2, &dia.to_string())
+                    );
                 }
             };
         }
