@@ -16,7 +16,7 @@ dependencies = [
 [[package]]
 name = "odbc"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/jdc-lab/odbc-rs#7b734a296c35f506754c54ce2aaf9421f43d5d69"
 dependencies = [
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "odbc-safe 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -41,12 +41,12 @@ name = "which-table"
 version = "0.1.0"
 dependencies = [
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "odbc 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "odbc 0.12.0 (git+https://github.com/jdc-lab/odbc-rs)",
 ]
 
 [metadata]
 "checksum cfg-if 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "b486ce3ccf7ffd79fdeb678eac06a9e6c09fc88d33836340becb8fffe87c5e33"
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
-"checksum odbc 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)" = "dfaadd4c1a8a289718dbf050c586dcc6fe770f697a897a44610dc2ee69f3799a"
+"checksum odbc 0.12.0 (git+https://github.com/jdc-lab/odbc-rs)" = "<none>"
 "checksum odbc-safe 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f57e420b988c9d41005b33da6710bc1a657f2ce540a951c8aeb1d23ce1615502"
 "checksum odbc-sys 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)" = "824b45fb2d67a9cab7bfe8c3e7d543b34935764d2d0eee15373ef85dd5988b72"

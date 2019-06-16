@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Dominik Braun <braun@sternentstehung.de>"]
 edition = "2018"
 
+[patch.crates-io]
+odbc = { git = 'https://github.com/jdc-lab/odbc-rs' }
+
 [dependencies]
 odbc = "0.12.0"
 log = "0.4.6"
