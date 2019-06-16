@@ -2,16 +2,19 @@ use odbc::{Connection, DiagnosticRecord, Environment, Statement};
 
 use crate::search;
 
+type TableMeta = [String; 4];
+
 pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> Result<Vec<Vec<String>>, Err>;
-    fn search(&self, term: &str) -> Box<Vec<search::Res>>;
+    fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err>;
 }
 
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
+    tables: Option<Vec<Vec<String>>>,
 }
 
 impl<'env> Odbc<'env> {
@@ -19,6 +22,7 @@ impl<'env> Odbc<'env> {
         Odbc {
             env,
             con: None,
+            tables: None,
         }
     }
 
@@ -26,8 +30,8 @@ impl<'env> Odbc<'env> {
         let res = odbc::create_environment_v3();
         let env = match res {
             Ok(env) => env,
-            Err(diagnose) => {
-                let msg = match diagnose {
+            Err(dia) => {
+                let msg = match dia {
                     Some(d) => d.to_string(),
                     None => String::from("failed to create environemnt"),
                 };
@@ -51,9 +55,9 @@ impl<'env> Odbc<'env> {
             let mut row: Vec<String> = Vec::new();
 
             for i in 1..(cols + 1) {
-                let col = i as u16;
+                let col_n = i as u16;
                 
-                if let Some(val) = cur.get_data::<&str>(col)? {
+                if let Some(val) = cur.get_data::<&str>(col_n)? {
                     row.push(val.to_owned());
                 }
             }
@@ -72,8 +76,8 @@ impl<'env> Db for Odbc<'env> {
                 self.con = Option::Some(con);
                 Result::Ok(())
             },
-            Err(diagnose) => {
-                let custom = Err::new(1, &diagnose.to_string());
+            Err(dia) => {
+                let custom = Err::new(1, &dia.to_string());
                 Result::Err(custom)
             }
         }
@@ -84,15 +88,25 @@ impl<'env> Db for Odbc<'env> {
         
         match self.load_all_tables() {
             Ok(tables) => Result::Ok(tables),
-            Err(diagnose) => {
-                let custom = Err::new(2, &diagnose.to_string());
+            Err(dia) => {
+                let custom = Err::new(2, &dia.to_string());
                 Result::Err(custom)
             }
         }
     }
 
-    fn search(&self, term: &str) -> Box<Vec<search::Res>> {
-        unimplemented!();
+    fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err> {
+        if self.tables.is_none() {
+            
+            self.tables = match self.load_all_tables() {
+                Ok(t) => Some(t),
+                Err(dia) => {
+                    let custom = Err::new(2, &dia.to_string());
+                    return Result::Err(custom);
+                }
+            };
+        }
+        Result::Ok(Box::new(Vec::new()))
     }
 }
 
