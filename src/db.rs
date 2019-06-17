@@ -1,8 +1,5 @@
 use odbc::{Connection, DiagnosticRecord, Environment, Statement};
-
 use crate::search;
-
-type TableMeta = [String; 4];
 
 pub trait Db {
     #[must_use]
@@ -41,6 +38,10 @@ impl<'env> Odbc<'env> {
             }
         };
         Result::Ok(env)
+    }
+
+    pub fn build_con_str(driver: &str, server: &str, db: &str, user: &str, pass: &str) -> String {
+        format!("Driver={};server={};database={};user={};password={}", driver, server, db, user, pass)
     }
 
     fn load_all_tables(&self) -> Result<Vec<Vec<String>>, DiagnosticRecord> {

@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Dbms {
-    driver_name: &'static str,
-    odbc_table_pos: u8,
+    pub driver_name: &'static str,
+    pub odbc_table_pos: u8,
 }
 
 #[derive(Debug, PartialEq)]
