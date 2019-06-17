@@ -7,12 +7,12 @@ pub struct Dbms {
 }
 
 #[derive(Debug, PartialEq, Default)]
-pub struct TableMeta<'a> {
-    pub catalog: Option<&'a str>,
-    pub schema: Option<&'a str>,
-    pub table: Option<&'a str>,
-    pub t_type: Option<&'a str>,
-    pub remarks: Option<&'a str>,
+pub struct TableMeta {
+    pub catalog: Option<String>,
+    pub schema: Option<String>,
+    pub table: Option<String>,
+    pub t_type: Option<String>,
+    pub remarks: Option<String>,
 }
 
 impl Dbms {

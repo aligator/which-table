@@ -12,7 +12,7 @@ pub trait Db {
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
-    tables: Option<Vec<info::TableMeta<'env>>>,
+    tables: Option<Vec<info::TableMeta>>,
 }
 
 impl<'env> Odbc<'env> {
@@ -60,7 +60,7 @@ impl<'env> Odbc<'env> {
             for i in 1..(cols + 1) {
                 let col_n = i as u16;
 
-                let val = cur.get_data::<&str>(col_n)?;
+                let val = cur.get_data::<&str>(col_n)?.map(|v| v.to_owned());
 
                 match col_n {
                     1 => row.catalog = val,
@@ -109,7 +109,6 @@ impl<'env> Db for Odbc<'env> {
 
     fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err> {
         if self.tables.is_none() {
-            
             self.tables = match self.load_all_tables() {
                 Ok(t) => Some(t),
                 Err(dia) => {

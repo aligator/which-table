@@ -7,7 +7,7 @@ mod info;
 mod search;
 
 // These constants will be provided by the CLI input in the future.
-const cli_system: &str = "MariaDB";
+const cli_system: &str = "mariadb";
 const cli_server: &str = "localhost";
 const cli_db: &str = "rust";
 const cli_user: &str = "rust";
