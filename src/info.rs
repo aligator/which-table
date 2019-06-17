@@ -6,12 +6,13 @@ pub struct Dbms {
     pub odbc_table_pos: u8,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct TableMeta<'a> {
-    catalogue: Option<&'a str>,
-    schema: Option<&'a str>,
-    table: Option<&'a str>,
-    t_type: Option<&'a str>,
+    pub catalog: Option<&'a str>,
+    pub schema: Option<&'a str>,
+    pub table: Option<&'a str>,
+    pub t_type: Option<&'a str>,
+    pub remarks: Option<&'a str>,
 }
 
 impl Dbms {

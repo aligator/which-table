@@ -1,17 +1,18 @@
 use odbc::{Connection, DiagnosticRecord, Environment, Statement};
-use crate::search;
+
+use crate::{info, search};
 
 pub trait Db {
     #[must_use]
     fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
-    fn all_tables(&self) -> Result<Vec<Vec<String>>, Err>;
+    fn all_tables(&self) -> Result<Vec<info::TableMeta>, Err>;
     fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err>;
 }
 
 pub struct Odbc<'env> {
     pub env: &'env Environment<odbc::Version3>,
     pub con: Option<Connection<'env>>,
-    tables: Option<Vec<Vec<String>>>,
+    tables: Option<Vec<info::TableMeta<'env>>>,
 }
 
 impl<'env> Odbc<'env> {
@@ -44,8 +45,8 @@ impl<'env> Odbc<'env> {
         format!("Driver={};server={};database={};user={};password={}", driver, server, db, user, pass)
     }
 
-    fn load_all_tables(&self) -> Result<Vec<Vec<String>>, DiagnosticRecord> {
-        let mut tables: Vec<Vec<String>> = Vec::new();
+    fn load_all_tables(&self) -> Result<Vec<info::TableMeta>, DiagnosticRecord> {
+        let mut tables: Vec<info::TableMeta> = Vec::new();
 
         let con = self.con.as_ref().unwrap();
         let stmt = Statement::with_parent(con)?;
@@ -54,15 +55,20 @@ impl<'env> Odbc<'env> {
         let cols = res.num_result_cols()?;
 
         while let Some(mut cur) = res.fetch()? {
-            let mut row: Vec<String> = Vec::new();
+            let mut row = info::TableMeta::default();
 
             for i in 1..(cols + 1) {
                 let col_n = i as u16;
-                
-                if let Some(val) = cur.get_data::<&str>(col_n)? {
-                    row.push(val.to_owned());
-                } else {
-                    row.push(String::from(""))
+
+                let val = cur.get_data::<&str>(col_n)?;
+
+                match col_n {
+                    1 => row.catalog = val,
+                    2 => row.schema = val,
+                    3 => row.table = val,
+                    4 => row.t_type = val,
+                    5 => row.remarks = val,
+                    _ => ()
                 }
             }
             tables.push(row);
@@ -89,7 +95,7 @@ impl<'env> Db for Odbc<'env> {
     }
 
     // Wrap load_all_tables() to allow easy use of '?'
-    fn all_tables(&self) -> Result<Vec<Vec<String>>, Err> {
+    fn all_tables(&self) -> Result<Vec<info::TableMeta>, Err> {
         
         match self.load_all_tables() {
             Ok(tables) => Result::Ok(tables),

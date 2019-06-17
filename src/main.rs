@@ -7,11 +7,11 @@ mod info;
 mod search;
 
 // These constants will be provided by the CLI input in the future.
-const cli_system: &str = "mysql";
+const cli_system: &str = "MariaDB";
 const cli_server: &str = "localhost";
-const cli_db: &str = "foodunit2";
-const cli_user: &str = "foodunit2";
-const cli_pass: &str = "foodunit2";
+const cli_db: &str = "rust";
+const cli_user: &str = "rust";
+const cli_pass: &str = "rust";
 
 fn main() {
     let env = Odbc::create_env().unwrap();

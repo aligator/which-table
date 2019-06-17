@@ -1,5 +1,7 @@
+use crate::info;
+
 #[derive(Debug, Clone)]
 pub struct Res<'a> {
     table: &'a str,
-    occurences: Vec<String>,
+    occurences: &'a info::TableMeta<'a>,
 }
