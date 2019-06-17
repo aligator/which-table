@@ -60,6 +60,8 @@ impl<'env> Odbc<'env> {
                 
                 if let Some(val) = cur.get_data::<&str>(col_n)? {
                     row.push(val.to_owned());
+                } else {
+                    row.push(String::from(""))
                 }
             }
             tables.push(row);
