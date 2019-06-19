@@ -18,14 +18,16 @@ fn main() {
     let mut dbc = Odbc::new(&env);
 
     let dbms = Dbms::get(cli_system).expect("DBMS not supported");
-    let con_str = Odbc::build_con_str(dbms.driver_name, cli_server, cli_db, cli_user, cli_pass);
+    let con_str = Odbc::build_con_str(dbms.default_driver, cli_server, cli_db, cli_user, cli_pass);
 
     if let Err(e) = dbc.connect(&con_str) {
         panic!("{}", e.msg);
     }
 
-    match dbc.all_tables() {
-        Ok(t) => println!("{:?}", t),
-        Err(e) => println!("{}", e.msg),
-    }
+    // match dbc.all_tables() {
+    //     Ok(t) => println!("{:?}", t),
+    //     Err(e) => println!("{}", e.msg),
+    // }
+
+    let res = dbc.search("Pizza");
 }

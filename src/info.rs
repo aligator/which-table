@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Dbms {
-    pub driver_name: &'static str,
+    pub default_driver: &'static str,
+    pub information_schema: &'static str,
     pub odbc_table_pos: u8,
 }
 
@@ -12,6 +13,7 @@ pub struct TableMeta {
     pub schema: Option<String>,
     pub table: Option<String>,
     pub t_type: Option<String>,
+    pub col_names: Option<Vec<String>>,
     pub remarks: Option<String>,
 }
 
@@ -25,9 +27,10 @@ impl Dbms {
         };
     }
 
-    fn new(driver_name: &'static str, odbc_table_pos: u8) -> Dbms {
+    fn new(default_driver: &'static str, information_schema: &'static str, odbc_table_pos: u8) -> Dbms {
         Dbms {
-            driver_name,
+            default_driver,
+            information_schema,
             odbc_table_pos,
         } 
     }
@@ -35,10 +38,18 @@ impl Dbms {
     fn load_all() -> HashMap<&'static str, Dbms> {
         let mut sys_map = HashMap::new();
 
-        sys_map.insert("mariadb", Dbms::new("MariaDB", 2));
-        sys_map.insert("mysql", Dbms::new("MySQL ODBC 8.0 ANSI Driver", 2));
-        sys_map.insert("sqlite", Dbms::new("SQLite3", 1));
-
+        sys_map.insert(
+            "mariadb",
+            Dbms::new("MariaDB", "information_schema", 2)
+        );
+        sys_map.insert(
+            "mysql",
+            Dbms::new("MySQL ODBC 8.0 ANSI Driver", "information_schema", 2)
+        );
+        sys_map.insert(
+            "sqlite",
+            Dbms::new("SQLite3", "sqlite_master", 1)
+        );
         sys_map
     }
 }
