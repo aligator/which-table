@@ -4,9 +4,9 @@ use crate::{info, search};
 
 pub trait Db {
     #[must_use]
-    fn connect<'env>(&mut self, con_str: &str) -> Result<(), Err>;
+    fn connect(&mut self, con_str: &str) -> Result<(), Err>;
     fn all_tables(&self) -> Result<Vec<info::TableMeta>, Err>;
-    fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err>;
+    fn search(&mut self, term: &str) -> Result<Vec<search::Res>, Err>;
 }
 
 pub struct Odbc<'env> {
@@ -57,8 +57,9 @@ impl<'env> Odbc<'env> {
         while let Some(mut cur) = res.fetch()? {
             let mut row = info::TableMeta::default();
 
-            for i in 1..(cols + 1) {
-                let col_n = i as u16;
+            for i in 0..cols {
+                // Cols start at 1 not 0
+                let col_n = (i + 1) as u16;
 
                 let val = cur.get_data::<&str>(col_n)?.map(|v| v.to_owned());
 
@@ -81,7 +82,7 @@ impl<'env> Db for Odbc<'env> {
     fn connect(&mut self, con_str: &str) -> Result<(), Err> {
         let res = self.env.connect_with_connection_string(con_str);
 
-        return match res {
+        match res {
             Ok(con) => {
                 self.con = Option::Some(con);
                 Result::Ok(())
@@ -107,7 +108,7 @@ impl<'env> Db for Odbc<'env> {
         }
     }
 
-    fn search(&mut self, term: &str) -> Result<Box<Vec<search::Res>>, Err> {
+    fn search(&mut self, term: &str) -> Result<Vec<search::Res>, Err> {
         if self.tables.is_none() {
             self.tables = match self.load_all_tables() {
                 Ok(t) => Some(t),
@@ -118,7 +119,7 @@ impl<'env> Db for Odbc<'env> {
                 }
             };
         }
-        Result::Ok(Box::new(Vec::new()))
+        Result::Ok(Vec::new())
     }
 }
 
